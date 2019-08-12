@@ -1,0 +1,19 @@
+* Continuous Normalizing Flows
+  
+  This repository provides a minimal implementation of Neural Ordinary Differential Equations and Continuous Normalizing Flows, as described in [fn:chen2018], for PyTorch using ODE solvers from SciPy.
+
+* Installation
+
+  #+BEGIN_SRC sh
+    pip install --user .
+  #+END_SRC
+
+  Optionally, run the tests to make sure that the installation is working:
+  #+BEGIN_SRC sh
+    pip install --user .[test]
+    pytest -v
+  #+END_SRC
+
+* References
+
+[fn:chen2018] Chen, Tian Qi, et al. "Neural ordinary differential equations." Advances in neural information processing systems. 2018.
