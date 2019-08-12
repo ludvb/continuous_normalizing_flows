@@ -12,14 +12,20 @@ import tests.datasets as datasets
 @pytest.mark.fix_rng
 def test_classifiction():
     x, Y = datasets.xor()
+
+    t0 = t.tensor(0.0).requires_grad_()
+    t1 = t.tensor(1.0).requires_grad_()
+
     dyn = cnf.dynamics.StackedHyperLinear(2)
-    optim = t.optim.Adam(dyn.parameters(), lr=.01)
+    optim = t.optim.Adam((*dyn.parameters(), t0, t1), lr=.01)
+
     for _ in range(100):
         optim.zero_grad()
-        y = cnf.ode(dyn, x, atol=1e-2)
+        y = cnf.ode(dyn, x, t0, t1, atol=1e-2)
         loss = t.nn.functional.cross_entropy(y, Y)
         loss.backward()
         optim.step()
+
     assert loss.item() < 0.1
 
 
@@ -58,15 +64,18 @@ def test_density_matching():
         t.diag(t.tensor(1.).expand(2)),
     )
 
+    t0 = t.tensor(0.0).requires_grad_()
+    t1 = t.tensor(0.5).requires_grad_()
+
     dyn = cnf.dynamics.StackedHyperLinear(2)
-    optim = t.optim.Adam(dyn.parameters(), lr=.01)
+    optim = t.optim.Adam((*dyn.parameters(), t0, t1), lr=.01)
 
     for _ in range(200):
         optim.zero_grad()
 
         # D(q||p)
         y0 = base_distr.sample([100])
-        y1, dlq = cnf.flow(dyn, y0, atol=1e-2)
+        y1, dlq = cnf.flow(dyn, y0, t0, t1, atol=1e-2)
         lq = base_distr.log_prob(y0) + dlq
         kl1 = (lq - lp(y1)).mean()
 
@@ -75,7 +84,7 @@ def test_density_matching():
             target_distr1.sample([50]),
             target_distr2.sample([50]),
         ])
-        y0, dlq = cnf.flow(dyn, y1, t0=1.0, t1=0.0, atol=1e-2)
+        y0, dlq = cnf.flow(dyn, y1, t1, t0, atol=1e-2)
         lq = base_distr.log_prob(y0) - dlq
         kl2 = (lp(y1) - lq).mean()
 

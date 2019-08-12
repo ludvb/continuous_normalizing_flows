@@ -14,16 +14,26 @@ def flatten(
     def _unflatten(x: t.Tensor) -> List[t.Tensor]:
         ret = []
         for shape in shapes:
-            cur_length = np.prod(shape)
+            cur_length = np.prod(shape, dtype=int)
             if cur_length > len(x):
                 raise ValueError('input has invalid shape')
-            ret.append(x[:cur_length].reshape(*shape))
+            cur = x[:cur_length]
+            if len(shape) > 0:
+                cur = cur.reshape(*shape)
+            else:
+                cur = cur.squeeze()
+            ret.append(cur)
             x = x[cur_length:]
         if len(x) > 0:
             raise ValueError('input has invalid shape')
         return ret
 
-    return t.cat([x.flatten() for x in xs]), _unflatten
+    return (
+        t.cat([
+            x.flatten() if x.ndimension() >= 1 else x.unsqueeze(0)
+            for x in xs]),
+        _unflatten,
+    )
 
 
 def jacobian(y, x):

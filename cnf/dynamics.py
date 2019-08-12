@@ -16,7 +16,7 @@ class HyperLinear(t.nn.Module):
         )
 
     def forward(self, y, time):
-        time = t.tensor([time]).to(y)
+        time = time.unsqueeze(0)
         return (
             self._bias.to(time)(time)
             +
