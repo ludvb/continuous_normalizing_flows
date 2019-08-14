@@ -36,20 +36,26 @@ def flatten(
     )
 
 
-def jacobian(y, x):
+def jacobian_trace(y, x):
     if y.ndimension() > 2:
         raise NotImplementedError('Can only compute Jacobian for y in R^n')
 
     while y.ndimension() < 2:
         y = y.unsqueeze(0)
+    while x.ndimension() < 2:
+        x = x.unsqueeze(0)
+
+    if y.shape != x.shape:
+        raise ValueError('y and x must have same shapes')
 
     with t.enable_grad():
         return (
             t.stack([
                 t.autograd.grad(yi, x, t.ones_like(yi), create_graph=True)[0]
-                for yi in y.transpose(0, 1).reshape(-1, len(y))
+                [:, i]
+                for i, yi in enumerate(y.transpose(0, 1).reshape(-1, len(y)))
             ])
-            .transpose(0, 1)
+            .sum(0)
         )
 
 

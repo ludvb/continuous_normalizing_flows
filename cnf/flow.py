@@ -6,7 +6,7 @@ from scipy.integrate import ode as ode_
 
 import torch as t
 
-from .utility import flatten, jacobian
+from .utility import flatten, jacobian_trace
 
 
 class ODE(t.autograd.Function):
@@ -147,7 +147,7 @@ def flow(
             y = y.requires_grad_()
             with t.enable_grad():
                 dydt = dynamics(y, time)
-            dlpdt = t.stack([-t.trace(x) for x in jacobian(dydt, y)])
+            dlpdt = -jacobian_trace(dydt, y)
             return t.cat([dydt, dlpdt.unsqueeze(1)], 1)
 
     if len(y0.shape) not in [1, 2]:
