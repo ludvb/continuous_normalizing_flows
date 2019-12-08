@@ -7,7 +7,7 @@ import torch as t
 
 def flatten(
         xs: Iterable[t.Tensor],
-) -> Tuple[t.Tensor, Callable[[t.Tensor], t.Tensor]]:
+) -> Tuple[t.Tensor, Callable[[t.Tensor], List[t.Tensor]]]:
     xs = list(xs)
     shapes = [x.shape for x in xs]
 
